@@ -407,11 +407,7 @@ OUTPUT:
 
 
 
-Simulating Hill Cipher
 
-
-Input Message : SecurityLaboratory
-Padded Message : SECURITYLABORATORY Encrypted Message : EACSDKLCAEFQDUKSXU Decrypted Message : SECURITYLABORATORY
 
 ## RESULT:
 The program is executed successfully
