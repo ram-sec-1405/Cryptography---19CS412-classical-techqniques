@@ -31,6 +31,7 @@ Implementation using C or pyhton code
 
 ## PROGRAM:
 PROGRAM:
+```
 CaearCipher.
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,7 +67,7 @@ scanf("%d", &key); // Read the key from the user
  
 caesarDecrypt(message, key); printf("Decrypted Message: %s", message); return 0;
 }
-
+```
 
 ## OUTPUT:
 OUTPUT:
@@ -119,6 +120,7 @@ To decrypt, use the INVERSE (opposite) of the last 3 rules, and the 1st as-is (d
 
 
 ## PROGRAM:
+```
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -274,6 +276,7 @@ printf("Cipher text: %s\n", str);
 
 return 0;
 }
+```
 
 ## OUTPUT:
 Output:
@@ -312,60 +315,104 @@ The cipher can, be adapted to an alphabet with any number of letters. All arithm
 
 
 ## PROGRAM:
-PROGRAM:
-#include <stdio.h> #include <string.h>
-int keymat[3][3] = { { 1, 2, 1 }, { 2, 3, 2 }, { 2, 2, 1 } };
-int invkeymat[3][3] = { { -1, 0, 1 }, { 2, -1, 0 }, { -2, 2, -1 } }; char key[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-char encode(char a, char b, char c) { char ret[4];
-int x, y, z;
-int posa = (int) a - 65; int posb = (int) b - 65; int posc = (int) c - 65;
-x = posa * keymat[0][0] + posb * keymat[1][0] + posc * keymat[2][0];
-y = posa * keymat[0][1] + posb * keymat[1][1] + posc * keymat[2][1];
-z = posa * keymat[0][2] + posb * keymat[1][2] + posc * keymat[2][2]; ret[0] = key[x % 26];
-ret[1] = key[y % 26]; ret[2] = key[z % 26]; ret[3] = '\0';
-return ret;
-}
-char decode(char a, char b, char c) { char ret[4];
-int x, y, z;
-int posa = (int) a - 65; int posb = (int) b - 65; int posc = (int) c - 65;
- 
-x = posa * invkeymat[0][0] + posb * invkeymat[1][0] + posc * invkeymat[2][0];y = posa * invkeymat[0][1] + posb * invkeymat[1][1] + posc * invkeymat[2][1];z = posa
-* invkeymat[0][2] + posb * invkeymat[1][2] + posc * invkeymat[2][2];ret[0] = key[(x % 26 < 0) ? (26 + x % 26) : (x % 26)];
-ret[1] = key[(y % 26 < 0) ? (26 + y % 26) : (y % 26)];
-ret[2] = key[(z % 26 < 0) ? (26 + z % 26) : (z % 26)];
-ret[3] = '\0'; return ret;
-}
-int main() { char msg[1000];
-char enc[1000] = ""; char dec[1000] = ""; int n;
-strcpy(msg, "SecurityLaboratory"); printf("Simulation of Hill Cipher\n"); printf("Input message : %s\n", msg); for (int i = 0; i < strlen(msg); i++) { msg[i] = toupper(msg[i]);
-}
-// Remove spaces
-n = strlen(msg) % 3;
-// Append padding text X if (n != 0) {
-for (int i = 1; i <= (3 - n); i++) {
-strcat(msg, "X");
-}
-}
-printf("Padded message : %s\n", msg); for (int i = 0; i < strlen(msg); i += 3) { char a = msg[i];
-char b = msg[i + 1]; char c = msg[i + 2];
-strcat(enc, encode(a, b, c));
-}
-printf("Encoded message : %s\n", enc); for (int i = 0; i < strlen(enc); i += 3) { char a = enc[i];
-char b = enc[i + 1]; char c = enc[i + 2];
-strcat(dec, decode(a, b, c));
- 
-}
-printf("Decoded message : %s\n", dec); return 0;
+
+```
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+#define SIZE 2  // Size of the key matrix (2x2 for simplicity)
+
+int keyMatrix[SIZE][SIZE];
+
+void toUpperCase(char *str) {
+    for (int i = 0; str[i]; i++) {
+        str[i] = toupper(str[i]);
+    }
 }
 
+void removeSpaces(char *str) {
+    int count = 0;
+    for (int i = 0; str[i]; i++) {
+        if (str[i] != ' ') {
+            str[count++] = str[i];
+        }
+    }
+    str[count] = '\0';
+}
+
+void getKeyMatrix(char *key) {
+    int k = 0;
+    toUpperCase(key);
+    removeSpaces(key);
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            keyMatrix[i][j] = key[k++] - 'A';
+        }
+    }
+}
+
+void encrypt(char *text, char *cipher) {
+    toUpperCase(text);
+    removeSpaces(text);
+    int len = strlen(text);
+    if (len % SIZE != 0) {
+        text[len++] = 'X';  // Padding if needed
+        text[len] = '\0';
+    }
+    
+    for (int i = 0; i < len; i += SIZE) {
+        for (int row = 0; row < SIZE; row++) {
+            int sum = 0;
+            for (int col = 0; col < SIZE; col++) {
+                sum += keyMatrix[row][col] * (text[i + col] - 'A');
+            }
+            cipher[i + row] = (sum % 26) + 'A';
+        }
+    }
+    cipher[len] = '\0';
+}
+
+void printKeyMatrix() {
+    printf("Key Matrix:\n");
+    for (int i = 0; i < SIZE; i++) {
+        for (int j = 0; j < SIZE; j++) {
+            printf("%d ", keyMatrix[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+int main() {
+    char key[SIZE * SIZE + 1], text[100], cipher[100];
+    
+    printf("Enter key (4 letters): ");
+    scanf("%s", key);
+    getKeyMatrix(key);
+    printKeyMatrix();
+    
+    printf("Enter plaintext: ");
+    scanf("%s", text);
+    
+    encrypt(text, cipher);
+    printf("Ciphertext: %s\n", cipher);
+    
+    return 0;
+}
+```
 
 ## OUTPUT:
 OUTPUT:
+![Screenshot 2025-03-27 084518](https://github.com/user-attachments/assets/5eb105c2-3cbf-4241-bd18-0827fdd0a744)
+
+
+
 Simulating Hill Cipher
 
 
 Input Message : SecurityLaboratory
 Padded Message : SECURITYLABORATORY Encrypted Message : EACSDKLCAEFQDUKSXU Decrypted Message : SECURITYLABORATORY
+
 ## RESULT:
 The program is executed successfully
 
@@ -398,6 +445,7 @@ The Vigenere cipher is a method of encrypting alphabetic text by using a series 
 
 ## PROGRAM:
 PROGRAM:
+```
 #include<stdio.h> #include<string.h>
 //FunctiontoperformVigenereencryption voidvigenereEncrypt(char*text,constchar*key){ inttextLen= strlen(text);
 intkeyLen=strlen(key); for(inti =0;i< textLen;i++){ charc =text[i]; if(c>='A'&&c<='Z'){
@@ -427,7 +475,7 @@ constchar *key="KEY";//Replacewithyourdesired key
 char message[]= "Thisisasecretmessage.";//Replace withyourmessage
 //Encrypt themessage vigenereEncrypt(message,key); printf("EncryptedMessage:%s\n",message);
 //Decrypt themessage backtotheoriginal vigenereDecrypt(message,key); printf("DecryptedMessage:%s\n",message); Return 0;
-
+```
 ## OUTPUT:
 OUTPUT :
 
@@ -467,6 +515,7 @@ In the rail fence cipher, the plaintext is written downwards and diagonally on s
 ## PROGRAM:
 
 PROGRAM:
+```
 #include<stdio.h> #include<string.h> #include<stdlib.h> main()
 {
 int i,j,len,rails,count,code[100][1000]; char str[1000];
@@ -512,6 +561,7 @@ if(code[i][j]!=0) printf("%c",code[i][j]);
 }
 printf("\n");
 }
+```
 ## OUTPUT:
 OUTPUT:
 Enter a Secret Message wearediscovered
